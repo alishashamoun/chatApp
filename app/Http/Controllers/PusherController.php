@@ -44,7 +44,4 @@ class PusherController extends Controller
         'user' => $user
     ]);
 }
-
-
-
 }
