@@ -36,12 +36,9 @@
                     <!-- Header -->
                     <div class="top">
                         <img src="{{ asset('assets/image/images.jpeg') }}" alt="" width="50">
-                        <div>
-                            <p class="top">Ross Edlin</p>
-                            <small>
-                                online
-                            </small>
-                        </div>
+                        @foreach ($users as $user)
+                            <li class="chat-user" data-id="{{ $user->id }}">{{ $user->name }}</li>
+                        @endforeach
                     </div>
                     <!-- End Header -->
 
@@ -53,19 +50,25 @@
 
                     <!-- Footer -->
                     <div class="bottom">
-                        <form>
+                        <form method="POST" action="">
                             @csrf
+                            <input type="hidden" name="chat_id" value="{{ $chat->id ?? '' }}">
+                            <input type="hidden" name="receiver_id" value="{{ $user->id }}">
+
                             <input type="text" id="message" name="message" placeholder="Enter message..."
                                 autocomplete="off">
-                            <button type="submit"></button>
+                            <button type="submit">Send</button>
                         </form>
+
                     </div>
                     <!-- End Footer -->
                 </div>
             </div>
         </div>
     </div>
-
+    <!--! Toastr -->
+    <script src="https://cdn.jsdelivr.net/npm/toastr@2.1.4/toastr.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.css">
     <script src="https://js.pusher.com/8.4.0/pusher.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
     <script>
@@ -86,6 +89,30 @@
                     $(document).scrollTop($(document).height());
                 });
         });
+
+        $('.chat-user').click(function() {
+            var userId = $(this).data('id');
+            $('#receiver_id').val(userId);
+
+
+            $.get(`/chat/${userId}`, function(res) {
+                $('.top').html(`
+            <img src="/assets/image/images.jpeg" width="50">
+            <div>
+                <p>${res.user.name}</p>
+                <small>online</small>
+            </div>
+        `);
+
+                let messagesHtml = '';
+                res.messages.forEach(function(msg) {
+                    messagesHtml += `<div class="message">${msg.message}</div>`;
+                });
+
+                $('.messages').html(messagesHtml);
+            });
+        });
+
 
         //Broadcast messages
         $("form").submit(function(event) {
@@ -108,13 +135,20 @@
             });
         });
 
-        // jQuery click handler
-        $(document).ready(function() {
-            $('.chat-user').click(function() {
-                var name = $(this).text();
-                $('.top').text(name);
-            });
-        });
+        @if (session('success'))
+            toastr.success("{{ session('success') }}");
+        @endif
+        @if (session('error'))
+            toastr.error("{{ session('error') }}")
+        @endif
+        @if (session('info'))
+            toastr.info("{{ session('info') }}")
+        @endif
+        @if ($errors->any())
+            @foreach ($errors->all() as $error)
+                toastr.error("{{ $error }}")
+            @endforeach
+        @endif
     </script>
 
 </x-app-layout>
