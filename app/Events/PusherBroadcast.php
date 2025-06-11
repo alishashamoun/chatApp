@@ -39,4 +39,12 @@ class PusherBroadcast implements ShouldBroadcastNow
     {
         return 'chat';
     }
+
+    public function broadcastWith()
+    {
+        return [
+            'message' => $this->message,
+        ];
+    }
+
 }

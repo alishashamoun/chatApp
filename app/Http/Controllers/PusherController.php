@@ -14,61 +14,87 @@ class PusherController extends Controller
 {
     public function index()
     {
-        $user = Auth::user();
-
-        $chats = Chat::where('person_one_id', $user->id)
-            ->orWhere('person_two_id', $user->id)
-            ->with(['userOne', 'userTwo'])->get();
-        if (Auth::user()->hasRole(['admin', 'manager', 'user'])) {
-            $users = User::role('user')->get();
-        } else {
-            $users = User::role('manager')->get();
+        if (!Auth::check()) {
+            return redirect()->route('login');
         }
 
-         $chat = Chat::where('person_one_id', auth()->id())
-                ->orWhere('person_two_id', auth()->id())
-                ->first();
+        $users = User::get();
+        // dd($users);
 
-        return view('dashboard', compact('users', 'chats', 'chat'));
+        return view('dashboard', compact('users'));
     }
+
+
+    // public function broadcast(Request $request)
+    // {
+
+
+    //     broadcast(new PusherBroadcast($request->message))->toOthers();
+
+    //     return view('broadcast', ['message' => $request->get('message')]);
+
+    // }
 
     public function broadcast(Request $request)
     {
-        // chat ko find karo
-        $chat = Chat::find($request->chat_id);
+        try {
+            $request->validate([
+                'sender_id' => 'required|exists:users,id',
+                'receiver_id' => 'nullable|exists:users,id',
+                'chat_id' => 'nullable',
+                'message' => 'required|string',
+            ]);
 
-        // agar chat na mile to error
-        if (!$chat) {
-            return response()->json(['error' => 'Chat not found'], 404);
+            // Save message in DB
+            $message = Message::create([
+                'sender_id' => $request->sender_id,
+                'receiver_id' => $request->receiver_id,
+                'chat_id' => $request->chat_id,
+                'message' => $request->message,
+            ]);
+
+            // Broadcast
+            broadcast(new PusherBroadcast($message->message))->toOthers();
+
+            return response()->json([
+                'status' => 'success',
+                'data' => [
+                    'id' => $message->id,
+                    'sender_id' => $message->sender_id,
+                    'message' => $message->message,
+                    'created_at' => $message->created_at->diffForHumans(),
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to send message.',
+                'error' => $e->getMessage(),
+            ], 500);
         }
-
-        // receiver ko set karo agar frontend se nahi aaya to
-        $receiver_id = $request->receiver_id ?? (
-            $chat->person_one_id == auth()->id()
-            ? $chat->person_two_id
-            : $chat->person_one_id
-        );
-
-        // message create karo
-        $message = Message::create([
-            'sender_id' => auth()->id(),
-            'receiver_id' => $receiver_id,
-            'chat_id' => $chat->id,
-            'message' => $request->message,
-        ]);
-
-
-        broadcast(new PusherBroadcast($request->get('message')))->toOthers();
-        return view('broadcast', ['message' => $request->get('message')]);
     }
+
+    public function getMessages()
+    {
+        $messages = Message::get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'messages' => $messages,
+            ]
+        ]);
+    }
+
 
     public function receive(Request $request)
     {
         return view('receive', ['message' => $request->get('message')]);
     }
 
-    public function chatWithUser($userId)
+    public function chatWithUser(Request $request, $userId)
     {
+        dd($request->chat_id, Chat::find($request->chat_id));
         $user = User::findOrFail($userId);
 
         $messages = Message::where(function ($query) use ($userId) {

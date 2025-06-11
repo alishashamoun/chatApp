@@ -5,6 +5,34 @@
         </h2>
     </x-slot>
 
+    <style>
+        .messages {
+            height: 400px;
+            overflow-y: auto;
+            padding: 15px;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+            background: #f9f9f9;
+        }
+
+        .message {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #d1e7dd;
+            border-radius: 5px;
+            width: fit-content;
+        }
+
+        .right {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #d1e7dd;
+            border-radius: 5px;
+            width: fit-content;
+        }
+    </style>
+
+
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
@@ -22,8 +50,9 @@
                 <h5 class="p-3">Sidebar</h5>
                 <ul class="list-group list-group-flush">
                     @foreach ($users as $user)
-                        <li class="chat-user">{{ $user->name }}</li>
+                        <li class="list-group-item chat-user" data-id="{{ $user->id }}">{{ $user->name }}</li>
                     @endforeach
+
                 </ul>
             </div>
 
@@ -35,40 +64,38 @@
 
                     <!-- Header -->
                     <div class="top">
+
                         <img src="{{ asset('assets/image/images.jpeg') }}" alt="" width="50">
+
                         @foreach ($users as $user)
-                            <li class="chat-user" data-id="{{ $user->id }}">{{ $user->name }}</li>
+                            <li class="list-group-item chat-user" data-id="{{ $user->id }}">{{ $user->name }}</li>
                         @endforeach
                     </div>
                     <!-- End Header -->
 
                     <!-- Chat -->
                     <div class="messages">
-                        @include('receive', ['message' => "Hey! What's up!  👋"])
+
+                        @include('receive', ['message' => "Hey! What's up!  👋"])
                     </div>
                     <!-- End Chat -->
 
                     <!-- Footer -->
                     <div class="bottom">
-                        <form method="POST" action="">
+                        <form method="POST" action="{{ route('broadcast') }}">
                             @csrf
-                            <input type="hidden" name="chat_id" value="{{ $chat->id ?? '' }}">
-                            <input type="hidden" name="receiver_id" value="{{ $user->id }}">
-
+                            {{-- <input type="hidden" name="chat_id" value="">
+                            <input type="hidden" id="receiver_id" name="receiver_id" value=""> --}}
                             <input type="text" id="message" name="message" placeholder="Enter message..."
                                 autocomplete="off">
                             <button type="submit">Send</button>
                         </form>
-
                     </div>
                     <!-- End Footer -->
                 </div>
             </div>
         </div>
     </div>
-    <!--! Toastr -->
-    <script src="https://cdn.jsdelivr.net/npm/toastr@2.1.4/toastr.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.css">
     <script src="https://js.pusher.com/8.4.0/pusher.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
     <script>
@@ -81,7 +108,7 @@
         //Receive messages
         channel.bind('chat', function(data) {
             $.post("/receive", {
-                    _token: '{{ csrf_token() }}',
+                    _token: $('meta[name="csrf-token"]').attr('content'),
                     message: data.message,
                 })
                 .done(function(res) {
@@ -119,21 +146,60 @@
             event.preventDefault();
 
             $.ajax({
-                url: "/broadcast",
+                url: "{{ route('broadcast') }}",
                 method: 'POST',
                 headers: {
                     'X-Socket-Id': pusher.connection.socket_id
                 },
                 data: {
-                    _token: '{{ csrf_token() }}',
+                    _token: $('meta[name="csrf-token"]').attr('content'),
+                    sender_id: {{ auth()->id() }},
+                    receiver_id: null,
+                    chat_id: null,
                     message: $("form #message").val(),
                 }
+
             }).done(function(res) {
-                $(".messages > .message").last().after(res);
-                $("form #message").val('');
-                $(document).scrollTop($(document).height());
+                if (res.status === 'success') {
+                    let html = `
+            <div class="message">
+                <strong>You:</strong> ${res.data.message}
+                <small class="text-muted">${res.data.created_at}</small>
+            </div>
+        `;
+                    $(".messages").append(html); // updated line
+                    $("form #message").val('');
+                    $(document).scrollTop($(document).height());
+                }
+            });
+
+
+        });
+
+        $(document).ready(function() {
+            $.ajax({
+                url: "{{ route('messages.get') }}",
+                method: 'GET',
+            }).done(function(res) {
+                if (res.status === 'success') {
+                    res.data.forEach(function(msg) {
+                        let html = `
+        <div class="message">
+            <strong>${msg.sender_id == {{ auth()->id() }} ? 'You' : 'User ' + msg.sender_id}:</strong> ${msg.message}
+            <small class="text-muted">${msg.created_at}</small>
+        </div>
+    `;
+                        $(".messages").append(html);
+                    });
+
+                    console.log(res);
+
+                    // scroll to bottom
+                    $(document).scrollTop($(document).height());
+                }
             });
         });
+
 
         @if (session('success'))
             toastr.success("{{ session('success') }}");
