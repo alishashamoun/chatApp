@@ -20,8 +20,8 @@ class PusherController extends Controller
 
         $users = User::get();
         // dd($users);
-
-        return view('dashboard', compact('users'));
+        $messages = Message::get();
+        return view('dashboard', compact('users', 'messages'));
     }
 
 

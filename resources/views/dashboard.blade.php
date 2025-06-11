@@ -4,6 +4,7 @@
             {{ __('Dashboard') }}
         </h2>
     </x-slot>
+    <link rel="stylesheet" href="{{ asset('style.css') }}">
 
     <style>
         .messages {
@@ -16,14 +17,6 @@
         }
 
         .message {
-            margin-bottom: 10px;
-            padding: 10px;
-            background-color: #d1e7dd;
-            border-radius: 5px;
-            width: fit-content;
-        }
-
-        .right {
             margin-bottom: 10px;
             padding: 10px;
             background-color: #d1e7dd;
@@ -50,10 +43,13 @@
                 <h5 class="p-3">Sidebar</h5>
                 <ul class="list-group list-group-flush">
                     @foreach ($users as $user)
-                        <li class="list-group-item chat-user" data-id="{{ $user->id }}">{{ $user->name }}</li>
+                        <li class="list-group-item chat-user" data-id="{{ $user->id }}"
+                            data-name="{{ $user->name }}">
+                            {{ $user->name }}
+                        </li>
                     @endforeach
-
                 </ul>
+
             </div>
 
             <!-- Chat Window -->
@@ -63,20 +59,24 @@
                 <div class="chat">
 
                     <!-- Header -->
-                    <div class="top">
-
+                    <div class="top p-2 bg-light">
                         <img src="{{ asset('assets/image/images.jpeg') }}" alt="" width="50">
-
-                        @foreach ($users as $user)
-                            <li class="list-group-item chat-user" data-id="{{ $user->id }}">{{ $user->name }}</li>
-                        @endforeach
+                        <h5 id="chatUserName"></h5>
                     </div>
+
                     <!-- End Header -->
 
                     <!-- Chat -->
                     <div class="messages">
-
-                        @include('receive', ['message' => "Hey! What's up!  👋"])
+                        {{-- @include('receive', ['message' => "Hey! What's up!  👋"]) --}}
+                        @foreach ($messages as $msg)
+                            <div class="message mb-2">
+                                <strong>{{ $msg->sender_id == auth()->id() ? 'You' : 'User' . $msg->sender_id }}:</strong>
+                                {{ $msg->message }}
+                                <br>
+                                <small class="text-muted">{{ $msg->created_at->diffForHumans() }}</small>
+                            </div>
+                        @endforeach
                     </div>
                     <!-- End Chat -->
 
@@ -140,6 +140,15 @@
             });
         });
 
+        document.querySelectorAll('.chat-user').forEach(item => {
+            item.addEventListener('click', function() {
+                let userName = this.dataset.name;
+
+                // Set user name in top header
+                document.getElementById('chatUserName').textContent = userName;
+            });
+        });
+
 
         //Broadcast messages
         $("form").submit(function(event) {
@@ -176,29 +185,6 @@
 
         });
 
-        $(document).ready(function() {
-            $.ajax({
-                url: "{{ route('messages.get') }}",
-                method: 'GET',
-            }).done(function(res) {
-                if (res.status === 'success') {
-                    res.data.forEach(function(msg) {
-                        let html = `
-        <div class="message">
-            <strong>${msg.sender_id == {{ auth()->id() }} ? 'You' : 'User ' + msg.sender_id}:</strong> ${msg.message}
-            <small class="text-muted">${msg.created_at}</small>
-        </div>
-    `;
-                        $(".messages").append(html);
-                    });
-
-                    console.log(res);
-
-                    // scroll to bottom
-                    $(document).scrollTop($(document).height());
-                }
-            });
-        });
 
 
         @if (session('success'))
