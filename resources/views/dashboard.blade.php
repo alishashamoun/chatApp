@@ -16,13 +16,13 @@
             background: #f9f9f9;
         }
 
-        .message {
+        /* .message {
             margin-bottom: 10px;
             padding: 10px;
             background-color: #d1e7dd;
             border-radius: 5px;
             width: fit-content;
-        }
+        } */
     </style>
 
 
@@ -68,13 +68,19 @@
 
                     <!-- Chat -->
                     <div class="messages">
-                        {{-- @include('receive', ['message' => "Hey! What's up!  👋"]) --}}
+                        @include('receive', ['message' => "Hey! What's up!  👋"])  
                         @foreach ($messages as $msg)
                             <div class="message mb-2">
-                                <strong>{{ $msg->sender_id == auth()->id() ? 'You' : 'User' . $msg->sender_id }}:</strong>
-                                {{ $msg->message }}
+                                <div class=" text-{{ $msg->sender_id == auth()->id() ? 'end' : 'start' }}">
+                                    <span
+                                        class="badge bg-{{ $msg->sender_id == auth()->id() ? 'secondary' : 'primary' }}">
+                                        {{ $msg->message }}
+                                    </span>
+                                    <br>
+                                    <small>{{ $msg->created_at->diffForHumans() }}</small>
+                                </div>
+
                                 <br>
-                                <small class="text-muted">{{ $msg->created_at->diffForHumans() }}</small>
                             </div>
                         @endforeach
                     </div>
@@ -102,7 +108,7 @@
         const pusher = new Pusher('{{ config('broadcasting.connections.pusher.key') }}', {
             cluster: 'us2'
         });
-        console.log(pusher.connection.state);
+
         const channel = pusher.subscribe('public');
 
         //Receive messages
@@ -117,28 +123,28 @@
                 });
         });
 
-        $('.chat-user').click(function() {
-            var userId = $(this).data('id');
-            $('#receiver_id').val(userId);
+        // $('.chat-user').click(function() {
+        //     var userId = $(this).data('id');
+        //     $('#receiver_id').val(userId);
 
 
-            $.get(`/chat/${userId}`, function(res) {
-                $('.top').html(`
-            <img src="/assets/image/images.jpeg" width="50">
-            <div>
-                <p>${res.user.name}</p>
-                <small>online</small>
-            </div>
-        `);
+        //     $.get(`/chat/${userId}`, function(res) {
+        //         $('.top').html(`
+    //     <img src="/assets/image/images.jpeg" width="50">
+    //     <div>
+    //         <h5>${dataset.name}</h5>
+    //         <small>online</small>
+    //     </div>
+    // `);
 
-                let messagesHtml = '';
-                res.messages.forEach(function(msg) {
-                    messagesHtml += `<div class="message">${msg.message}</div>`;
-                });
+        //         let messagesHtml = '';
+        //         res.messages.forEach(function(msg) {
+        //             messagesHtml += `<div class="message">${msg.message}</div>`;
+        //         });
 
-                $('.messages').html(messagesHtml);
-            });
-        });
+        //         $('.messages').html(messagesHtml);
+        //     });
+        // });
 
         document.querySelectorAll('.chat-user').forEach(item => {
             item.addEventListener('click', function() {
@@ -170,21 +176,23 @@
 
             }).done(function(res) {
                 if (res.status === 'success') {
+                    let isSender = res.data.sender_id === res.current_user_id;
+
                     let html = `
-            <div class="message">
-                <strong>You:</strong> ${res.data.message}
-                <small class="text-muted">${res.data.created_at}</small>
+            <div class="message mb-2">
+                <div class="text-${isSender ? 'end' : 'start'}">
+                    <span class="badge bg-${isSender ? 'secondary' : 'primary'}">
+                        ${res.data.message}
+                    </span><br>
+                    <small class="text-muted">${res.data.created_at}</small>
+                </div>
             </div>
         `;
-                    $(".messages").append(html); // updated line
-                    $("form #message").val('');
-                    $(document).scrollTop($(document).height());
+                    $('#message_area').append(html);
                 }
             });
 
-
         });
-
 
 
         @if (session('success'))

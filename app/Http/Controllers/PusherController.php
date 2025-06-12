@@ -27,8 +27,6 @@ class PusherController extends Controller
 
     // public function broadcast(Request $request)
     // {
-
-
     //     broadcast(new PusherBroadcast($request->message))->toOthers();
 
     //     return view('broadcast', ['message' => $request->get('message')]);
@@ -58,12 +56,13 @@ class PusherController extends Controller
 
             return response()->json([
                 'status' => 'success',
+                'current_user_id' => auth()->id(),
                 'data' => [
                     'id' => $message->id,
                     'sender_id' => $message->sender_id,
                     'message' => $message->message,
                     'created_at' => $message->created_at->diffForHumans(),
-                ]
+                ],
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -86,7 +85,6 @@ class PusherController extends Controller
         ]);
     }
 
-
     public function receive(Request $request)
     {
         return view('receive', ['message' => $request->get('message')]);
@@ -94,7 +92,7 @@ class PusherController extends Controller
 
     public function chatWithUser(Request $request, $userId)
     {
-        dd($request->chat_id, Chat::find($request->chat_id));
+        dd($request->chat_id, Message::find($request->chat_id));
         $user = User::findOrFail($userId);
 
         $messages = Message::where(function ($query) use ($userId) {
