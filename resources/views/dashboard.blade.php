@@ -68,7 +68,7 @@
 
                     <!-- Chat -->
                     <div class="messages">
-                        @include('receive', ['message' => "Hey! What's up!  👋"])  
+                        @include('receive', ['message' => "Hey! What's up!  👋"])
                         @foreach ($messages as $msg)
                             <div class="message mb-2">
                                 <div class=" text-{{ $msg->sender_id == auth()->id() ? 'end' : 'start' }}">
@@ -112,16 +112,16 @@
         const channel = pusher.subscribe('public');
 
         //Receive messages
-        channel.bind('chat', function(data) {
-            $.post("/receive", {
-                    _token: $('meta[name="csrf-token"]').attr('content'),
-                    message: data.message,
-                })
-                .done(function(res) {
-                    $(".messages > .message").last().after(res);
-                    $(document).scrollTop($(document).height());
-                });
-        });
+            channel.bind('chat', function(data) {
+                $.post("/receive", {
+                        _token: $('meta[name="csrf-token"]').attr('content'),
+                        message: data.message,
+                    })
+                    .done(function(res) {
+                        $(".messages > .message").last().after(res);
+                        $(document).scrollTop($(document).height());
+                    });
+            });
 
         // $('.chat-user').click(function() {
         //     var userId = $(this).data('id');

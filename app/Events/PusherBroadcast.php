@@ -16,6 +16,7 @@ class PusherBroadcast implements ShouldBroadcastNow
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public string $message;
+    public $sender_id;
 
     /**
      * Create a new event instance.
@@ -23,6 +24,7 @@ class PusherBroadcast implements ShouldBroadcastNow
     public function __construct(string $message)
     {
         $this->message = $message;
+        $this->sender_id = auth()->id();
     }
 
     /**
@@ -44,6 +46,7 @@ class PusherBroadcast implements ShouldBroadcastNow
     {
         return [
             'message' => $this->message,
+            'sender_id' => $this->sender_id,
         ];
     }
 

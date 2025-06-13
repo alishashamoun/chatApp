@@ -17,11 +17,35 @@ class PusherController extends Controller
         if (!Auth::check()) {
             return redirect()->route('login');
         }
+        $user = Auth::user();
+
+        $chats = Chat::where('person_one_id', $user->id)
+            ->orWhere('person_two_id', $user->id)
+            ->with(['userOne', 'userTwo'])->get();
+        if (Auth::user()->hasRole(['admin', 'manager'])) {
+            $users = User::role('User')->get();
+        } else {
+            $users = User::role('manager')->get();
+        }
 
         $users = User::get();
         // dd($users);
         $messages = Message::get();
-        return view('dashboard', compact('users', 'messages'));
+        return view('dashboard2', compact('users', 'messages', 'chats', 'user'));
+    }
+
+    public function search(Request $request)
+    {
+        $search = $request->input('search');
+        if (Auth::user()->hasRole(['admin', 'manager'])) {
+            $users = User::role('User')->where('name', 'like', "%$search%")->get();
+        } else {
+            $users = User::role('manager')->where('name', 'like', "%$search%")->get();
+        }
+        $chats = Chat::with(['userOne', 'userTwo'])->get();
+        $messages = Message::get();
+
+        return view('chats.index', compact('users', 'chats', 'messages'));
     }
 
 
@@ -87,6 +111,7 @@ class PusherController extends Controller
 
     public function receive(Request $request)
     {
+
         return view('receive', ['message' => $request->get('message')]);
     }
 
@@ -107,6 +132,88 @@ class PusherController extends Controller
             'messages' => $messages,
             'user' => $user
         ]);
+    }
+
+    public function show($id)
+    {
+        $chat = Chat::findOrFail($id);
+        $user = Auth::user();
+
+        if ($chat->user_one_id !== $user->id && $chat->user_two_id !== $user->id) {
+            abort(403);
+        }
+
+        $messages = $chat->messages()->with('sender')->orderBy('created_at')->get();
+
+        $chat->messages()
+            ->where('sender_id', '!=', $user->id)
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
+
+        $otherUser = $chat->user_one_id === $user->id ? $chat->userTwo : $chat->userOne;
+
+        $chats = Chat::where('user_one_id', $user->id)
+            ->orWhere('user_two_id', $user->id)
+            ->with([
+                'userOne',
+                'userTwo',
+                'messages'
+
+            ])
+            ->get();
+        return view('chats.show', compact('chats', 'chat', 'otherUser', 'user', 'messages'));
+    }
+
+    public function initiateChat(Request $request, $userTwo)
+    {
+        $user = Auth::user();
+        $Usertwomodel = User::findOrFail($userTwo);
+
+
+        if ($userTwo === $user->id) {
+            return back()->with('error', 'You cannot chat with yourself.');
+        }
+
+        $chat = Chat::where(function ($query) use ($user, $userTwo) {
+            $query->where('user_one_id', $user->id)
+                ->where('user_two_id', $userTwo);
+        })->orWhere(function ($query) use ($user, $userTwo) {
+            $query->where('user_one_id', $userTwo)
+                ->where('user_two_id', $user->id);
+        })->first();
+
+        if (!$chat) {
+
+            $chat = Chat::create([
+                'user_one_id' => $user->id,
+                'user_two_id' => $userTwo,
+            ]);
+
+
+            broadcast(new ChatInitiated($chat))->toOthers();
+
+            $Usertwomodel->notify(new NewChatNotification($chat, $Usertwomodel));
+
+
+        }
+
+        return redirect()->route('dashboard', $chat->id);
+    }
+
+    public function showChats()
+    {
+        $user = Auth::user();
+
+        $chats = Chat::where('person_one_id', $user->id)
+            ->orWhere('person_two_id', $user->id)
+            ->with(['userOne', 'userTwo'])->get();
+        if (Auth::user()->hasRole(['Admin', 'manager'])) {
+            $users = User::role('User')->get();
+        } else {
+            $users = User::role('manager')->get();
+        }
+
+        return view('chats.index', compact('chats', 'users'));
     }
 
 }
