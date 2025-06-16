@@ -42,7 +42,7 @@
                             <div>
                                 <strong>{{ $user->name }}</strong>
                             </div>
-                            <a href="{{ route('dashboard', ['id' => $user->id]) }}" class="btn btn-sm btn-success">Start
+                            <a href="{{ route('broadcast', ['id' => $user->id]) }}" class="btn btn-sm btn-success">Start
                                 Chat</a>
                         </li>
                     @endif

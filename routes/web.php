@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::middleware('auth')->group(function () {
-    Route::get('/', [PusherController::class, 'index'])->name('dashboard');
+    Route::get('/broadcast', [PusherController::class, 'index'])->name('dashboard');
     Route::post('/broadcast', [PusherController::class, 'broadcast'])->name('broadcast');
     Route::post('/receive', [PusherController::class, 'receive']);
     Route::get('/messages', [PusherController::class, 'getMessages'])->name('messages.get');

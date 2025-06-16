@@ -244,11 +244,10 @@
                                 <div class="dropdown-divider"></div>
 
                                 <!-- item-->
-                                <a class='dropdown-item notify-item' href='auth-logout.html'>
+                                <a href="{{ url('logout') }}" class='dropdown-item notify-item'>
                                     <i class="mdi mdi-location-exit fs-16 align-middle"></i>
                                     <span>Logout</span>
                                 </a>
-
                             </div>
                         </li>
 
@@ -318,6 +317,18 @@
                                 <i data-feather="globe"></i>
                                 <span>Chat</span>
                             </a>
+                        </li>
+
+                        <li>
+                            <button onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
+                                class="btn btn-danger" style="margin-left:15px;">
+                                Logout
+                            </button>
+
+                            <form id="logout-form" action="{{ route('logout') }}" method="POST"
+                                style="display: none;">
+                                @csrf
+                            </form>
                         </li>
 
 
