@@ -32,22 +32,46 @@
         </div>
 
 
+
+        {{-- User List --}}
         <div class="col-12 mt-5">
             <h3>Start a New Chat</h3>
-            <ul class="list-group">
-                @foreach ($users as $user)
-                    @if ($user->id !== auth()->user()->id)
-                        <!-- Avoid showing current user -->
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong>{{ $user->name }}</strong>
-                            </div>
-                            <a href="{{ route('broadcast', ['id' => $user->id]) }}" class="btn btn-sm btn-success">Start
-                                Chat</a>
-                        </li>
-                    @endif
-                @endforeach
-            </ul>
+
+            {{-- Agar search hua hai aur koi user mila hai --}}
+            @if (request('search'))
+                @if ($users->count() > 0)
+                    <ul class="list-group">
+                        @foreach ($users as $user)
+                            @if ($user->id !== auth()->user()->id)
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ $user->name }}</strong>
+                                    </div>
+                                    <a href="{{ route('broadcast', ['id' => $user->id]) }}"
+                                        class="btn btn-sm btn-success">Start Chat</a>
+                                </li>
+                            @endif
+                        @endforeach
+                    </ul>
+                @else
+                    <p>No users found.</p>
+                @endif
+            @else
+                {{-- Jab search nahi hua to normal user list dikhao --}}
+                <ul class="list-group">
+                    @foreach ($users as $user)
+                        @if ($user->id !== auth()->user()->id)
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ $user->name }}</strong>
+                                </div>
+                                <a href="{{ route('broadcast', ['id' => $user->id]) }}" class="btn btn-sm btn-success">Start
+                                    Chat</a>
+                            </li>
+                        @endif
+                    @endforeach
+                </ul>
+            @endif
         </div>
     </div>
 

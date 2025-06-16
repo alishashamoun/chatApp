@@ -37,15 +37,20 @@ class PusherController extends Controller
     public function search(Request $request)
     {
         $search = $request->input('search');
-        if (Auth::user()->hasRole(['admin', 'manager'])) {
-            $users = User::role('User')->where('name', 'like', "%$search%")->get();
-        } else {
-            $users = User::role('manager')->where('name', 'like', "%$search%")->get();
-        }
+        // if (Auth::user()->hasRole(['admin', 'manager'])) {
+        //     $users = User::role('user')->where('name', 'like', "%$search%")->get();
+        // } else {
+        //     $users = User::role('manager')->where('name', 'like', "%$search%")->get();
+        // }
+        $roleToSearch = Auth::user()->hasRole(['admin', 'manager']) ? 'user' : 'manager';
+
+        $users = User::role($roleToSearch)
+            ->where('name', 'like', '%' . $search . '%')
+            ->get();
         $chats = Chat::with(['userOne', 'userTwo'])->get();
         $messages = Message::get();
 
-        return view('chats.index', compact('users', 'chats', 'messages'));
+        return view('chats.index', compact('users', 'chats', 'messages', 'roleToSearch'));
     }
 
 
