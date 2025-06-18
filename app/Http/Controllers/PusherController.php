@@ -17,42 +17,32 @@ class PusherController extends Controller
         if (!Auth::check()) {
             return redirect()->route('login');
         }
+
         $user = Auth::user();
 
-        $chats = Chat::where('person_one_id', $user->id)
-            ->orWhere('person_two_id', $user->id)
-            ->with(['userOne', 'userTwo'])->get();
-        if (Auth::user()->hasRole(['admin', 'manager'])) {
-            $users = User::role('User')->get();
-        } else {
-            $users = User::role('manager')->get();
-        }
-
+        // Sab users except current user
         $users = User::get();
-        // dd($users);
-        $messages = Message::get();
-        return view('dashboard2', compact('users', 'messages', 'chats', 'user'));
+
+        $chats = Chat::with(['userOne', 'userTwo'])->get();
+        $messages = Message::all();
+
+        return view('chats.index', compact('users', 'messages', 'chats', 'user'));
     }
 
     public function search(Request $request)
     {
         $search = $request->input('search');
-        // if (Auth::user()->hasRole(['admin', 'manager'])) {
-        //     $users = User::role('user')->where('name', 'like', "%$search%")->get();
-        // } else {
-        //     $users = User::role('manager')->where('name', 'like', "%$search%")->get();
-        // }
-        $roleToSearch = Auth::user()->hasRole(['admin', 'manager']) ? 'user' : 'manager';
+        $user = Auth::user();
 
-        $users = User::role($roleToSearch)
+        $users = User::where('id', '!=', $user->id)
             ->where('name', 'like', '%' . $search . '%')
             ->get();
+
         $chats = Chat::with(['userOne', 'userTwo'])->get();
-        $messages = Message::get();
+        $messages = Message::all();
 
-        return view('chats.index', compact('users', 'chats', 'messages', 'roleToSearch'));
+        return view('chats.index', compact('users', 'chats', 'messages', 'user'));
     }
-
 
     // public function broadcast(Request $request)
     // {
@@ -66,22 +56,33 @@ class PusherController extends Controller
     {
         try {
             $request->validate([
-                'sender_id' => 'required|exists:users,id',
-                'receiver_id' => 'nullable|exists:users,id',
-                'chat_id' => 'nullable',
+                'receiver_id' => 'required|exists:users,id',
                 'message' => 'required|string',
+            ]);
+
+
+            $sender_id = auth()->id();
+            $receiver_id = $request->receiver_id;
+
+            [$user1, $user2] = $sender_id < $receiver_id
+                ? [$sender_id, $receiver_id]
+                : [$receiver_id, $sender_id];
+
+            $chat = Chat::firstOrCreate([
+                'person_one_id' => $user1,
+                'person_two_id' => $user2,
             ]);
 
             // Save message in DB
             $message = Message::create([
-                'sender_id' => $request->sender_id,
-                'receiver_id' => $request->receiver_id,
-                'chat_id' => $request->chat_id,
+                'chat_id' => $chat->id,
+                'sender_id' => $sender_id,
+                'receiver_id' => $receiver_id,
                 'message' => $request->message,
             ]);
 
             // Broadcast
-            broadcast(new PusherBroadcast($message->message))->toOthers();
+            broadcast(new PusherBroadcast($message))->toOthers();
 
             return response()->json([
                 'status' => 'success',
@@ -89,6 +90,7 @@ class PusherController extends Controller
                 'data' => [
                     'id' => $message->id,
                     'sender_id' => $message->sender_id,
+                    'receiver_id' => $message->receiver_id,
                     'message' => $message->message,
                     'created_at' => $message->created_at->diffForHumans(),
                 ],
@@ -101,6 +103,25 @@ class PusherController extends Controller
             ], 500);
         }
     }
+
+    public function broadcastshow($id)
+    {
+        $receiver = User::findOrFail($id); // jis user se chat karni hai
+        $user = Auth::user();
+        $users = User::get();
+
+        // Optional: fetch existing chat or messages if needed
+        $messages = Message::where(function ($query) use ($user, $receiver) {
+            $query->where('sender_id', $user->id)
+                ->where('receiver_id', $receiver->id);
+        })->orWhere(function ($query) use ($user, $receiver) {
+            $query->where('sender_id', $receiver->id)
+                ->where('receiver_id', $user->id);
+        })->get();
+
+        return view('chats.show', compact('receiver', 'user', 'messages', 'users'));
+    }
+
 
     public function getMessages()
     {
@@ -202,7 +223,7 @@ class PusherController extends Controller
 
         }
 
-        return redirect()->route('dashboard', $chat->id);
+        return redirect()->route('chats.show', $chat->id);
     }
 
     public function showChats()

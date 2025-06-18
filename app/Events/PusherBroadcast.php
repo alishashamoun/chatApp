@@ -47,6 +47,7 @@ class PusherBroadcast implements ShouldBroadcastNow
         return [
             'message' => $this->message,
             'sender_id' => $this->sender_id,
+             'receiver_id' => $this->message->receiver_id,  
         ];
     }
 

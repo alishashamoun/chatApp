@@ -1,20 +1,15 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Dashboard') }}
-        </h2>
-    </x-slot>
+
     <link rel="stylesheet" href="{{ asset('style.css') }}">
 
     <style>
-        .messages {
+        /* .messages {
             height: 400px;
             overflow-y: auto;
             padding: 15px;
             border: 1px solid #ddd;
             margin-bottom: 10px;
             background: #f9f9f9;
-        }
+        } */
 
         /* .message {
             margin-bottom: 10px;
@@ -24,17 +19,6 @@
             width: fit-content;
         } */
     </style>
-
-
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    {{ __("You're logged in!") }}
-                </div>
-            </div>
-        </div>
-    </div>
 
     <div class="container-fluid">
         <div class="row">
@@ -94,7 +78,7 @@
                             <input type="hidden" id="receiver_id" name="receiver_id" value=""> --}}
                             <input type="text" id="message" name="message" placeholder="Enter message..."
                                 autocomplete="off">
-                            <button type="submit">Send</button>
+                            <button type="submit"></button>
                         </form>
                     </div>
                     <!-- End Footer -->
@@ -211,4 +195,3 @@
         @endif
     </script>
 
-</x-app-layout>
