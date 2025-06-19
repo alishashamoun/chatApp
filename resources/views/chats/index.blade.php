@@ -1,7 +1,6 @@
 @extends('layout.app')
 @section('content')
 
-
     <div class="row">
         <div class="col-12">
             <form action="{{ route('chats.search') }}" method="GET" class="d-flex">
@@ -24,7 +23,7 @@
                                 <small>Last message:
                                     {{ $chat->messages->last()->message ?? 'No messages yet' }}</small>
                             </div>
-                            <a href="{{ route('broadcastshow', $chat->id) }}" class="btn btn-sm btn-info">Continue</a>
+                            <a href="{{ route('chats.show', $chat->id) }}" class="btn btn-sm btn-info">Continue</a>
                         </li>
                     @endforeach
                 </ul>
@@ -35,19 +34,30 @@
         <div class="col-12 mt-5">
             <h3>Start a New Chat</h3>
             <ul class="list-group">
-                @forelse ($users as $user)
+                {{-- @forelse ($users as $chatUser)
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <div>
-                            <strong>{{ $user->name }}</strong>
+                            <strong>{{ $chatUser->name }}</strong>
                         </div>
-                        @if (isset($user))
-                            <a href="{{ route('broadcastshow', ['id' => $user->id]) }}" class="btn btn-sm btn-success">Start
+                        <p>{{ $user->name }} (ID: {{ $user->id }})</p>
+
+                            <a href="{{ route('broadcastshow', ['id' => $chatUser->id]) }}" class="btn btn-sm btn-success">Start
                                 Chat</a>
-                        @endif
+
                     </li>
                 @empty
                     <li class="list-group-item">No users found</li>
-                @endforelse
+                @endforelse --}}
+                @foreach ($users as $chatUser)
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <p>{{ $chatUser->name }}
+                            {{-- (ID: {{ $chatUser->id }}) --}}
+                        </p>
+                        <a href="{{ route('broadcastshow', ['id' => $chatUser->id]) }}" class="btn btn-sm btn-success">Start
+                            Chat</a>
+                    </li>
+                @endforeach
+
             </ul>
 
         </div>

@@ -17,7 +17,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/chats', [PusherController::class,'showChats'])->name('chats.index');
     Route::get('/chats/search', [PusherController::class,'search'])->name('chats.search');
-    Route::get('/chats/{id}', [PusherController::class, 'show'])->name('chats.show');
+    Route::get('/chats/{chat}', [PusherController::class, 'show'])->name('chats.show');
     Route::post('/chats/{chat}/messages',[PusherController::class, 'storeMessage'])->name('chats.messages.store');
     // Route::get('/client/{id}/chat', [PusherController::class,'initiateChat'])->name('chats.create');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

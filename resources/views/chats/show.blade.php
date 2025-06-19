@@ -1,24 +1,25 @@
 @extends('layout.app')
 @section('content')
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <style>
-        .messages {
-            height: 400px;
-            overflow-y: auto;
-            padding: 15px;
-            border: 1px solid #ddd;
-            margin-bottom: 10px;
-            background: #f9f9f9;
-        }
+        /* .messages {
+                                                    height: 400px;
+                                                    overflow-y: auto;
+                                                    padding: 15px;
+                                                    border: 1px solid #ddd;
+                                                    margin-bottom: 10px;
+                                                    background: #f9f9f9;
+                                                } */
 
         /* .message {
-                                        margin-bottom: 10px;
-                                        padding: 10px;
-                                        background-color: #d1e7dd;
-                                        border-radius: 5px;
-                                        width: fit-content;
-                                    } */
+                                                margin-bottom: 10px;
+                                                padding: 10px;
+                                                background-color: #d1e7dd;
+                                                border-radius: 5px;
+                                                width: fit-content;
+                                                } */
     </style>
-
 
     <div class="container-fluid">
         <div class="row">
@@ -26,11 +27,10 @@
             <div class="col-md-3 bg-light border-end">
                 <h5 class="p-3">Sidebar</h5>
                 <ul class="list-group list-group-flush">
-                    @foreach ($users as $user)
-                        <li class="list-group-item chat-user" data-id="{{ $user->id }}" data-name="{{ $user->name }}">
-                            {{ $user->name }}
-                        </li>
-                    @endforeach
+                    <li class="list-group-item chat-user">
+                        {{ $chatWithName ?? '' }}
+                    </li>
+
                 </ul>
 
             </div>
@@ -44,9 +44,13 @@
                     <!-- Header -->
                     <div class="top p-2 bg-light">
                         <img src="{{ asset('assets/image/images.jpeg') }}" alt="" width="50">
-                        <h5 id="chatUserName"></h5>
-                    </div>
+                        <h5 id="chatUserName">
+                            {{ $chatWithName ?? '' }}
+                        </h5>
 
+                        {{-- <pre>{{ dd($user) }}</pre> --}}
+
+                    </div>
                     <!-- End Header -->
 
                     <!-- Chat -->
@@ -61,8 +65,6 @@
                                     <br>
                                     <small>{{ $msg->created_at->diffForHumans() }}</small>
                                 </div>
-
-                                <br>
                             </div>
                         @endforeach
                     </div>
@@ -70,10 +72,11 @@
 
                     <!-- Footer -->
                     <div class="bottom">
-                        <form method="POST" action="{{ route('broadcast') }}">
+                        <form>
                             @csrf
                             {{-- <input type="hidden" name="chat_id" value=""> --}}
-                            <input type="hidden" id="receiver_id" name="receiver_id" value="{{ $user->id }}">
+                            <input type="hidden" id="receiver_id" name="receiver_id"
+                                value="{{ $user->id ?? ($chatReceiver->id ?? '') }}">
 
                             <input type="text" id="message" name="message" placeholder="Enter message..."
                                 autocomplete="off">
@@ -100,31 +103,20 @@
 
         //Receive messages
         channel.bind('chat', function(data) {
-        if (data.receiver_id == {{ auth()->id() }}) {
-            $.post("/receive", {
-                    _token: $('meta[name="csrf-token"]').attr('content'),
-                    message: data.message,
-                })
-                .done(function(res) {
-                    $(".messages > .message").last().after(res);
-                    $(document).scrollTop($(document).height());
-                });
+            console.log('Received:', data);
+            if (data.receiver_id == {{ auth()->id() }}) {
+                $.post("/receive", {
+                        _token: $('meta[name="csrf-token"]').attr('content'),
+                        message: data.message,
+                    })
+                    .done(function(res) {
+                        $(".messages > .message").last().after(res);
+                        $(document).scrollTop($(document).height());
+                    });
             }
         });
 
-        // $('.chat-user').click(function() {
-        //     var userId = $(this).data('id');
-        //     $('#receiver_id').val(userId);
 
-
-        //     $.get(`/chat/${userId}`, function(res) {
-        //         $('.top').html(`
-    //     <img src="/assets/image/images.jpeg" width="50">
-    //     <div>
-    //         <h5>${dataset.name}</h5>
-    //         <small>online</small>
-    //     </div>
-    // `);
 
         //         let messagesHtml = '';
         //         res.messages.forEach(function(msg) {
@@ -135,14 +127,14 @@
         //     });
         // });
 
-        document.querySelectorAll('.chat-user').forEach(item => {
-            item.addEventListener('click', function() {
-                let userName = this.dataset.name;
+        // document.querySelectorAll('.chat-user').forEach(item => {
+        //     item.addEventListener('click', function() {
+        //         let userName = this.dataset.name;
 
-                // Set user name in top header
-                document.getElementById('chatUserName').textContent = userName;
-            });
-        });
+        //         // Set user name in top header
+        //         document.getElementById('chatUserName').textContent = userName;
+        //     });
+        // });
 
 
         //Broadcast messages
@@ -150,6 +142,10 @@
             event.preventDefault();
 
             let selectedUserId = document.getElementById('receiver_id').value;
+            console.log('Selected Receiver ID:', selectedUserId); // check value
+
+            // continue with ajax
+
 
             $.ajax({
                 url: "{{ route('broadcast') }}",
@@ -161,9 +157,11 @@
                     _token: $('meta[name="csrf-token"]').attr('content'),
                     sender_id: {{ auth()->id() }},
                     receiver_id: selectedUserId,
-                    chat_id: null,
+                    // chat_id: null,
                     message: $("form #message").val(),
                 }
+
+
 
             }).done(function(res) {
                 if (res.status === 'success') {
@@ -179,7 +177,12 @@
                 </div>
             </div>
         `;
-                    $('#message_area').append(html);
+                    // console.log(typeof selectedUserId); // ye `"string"` hona chahiye
+                    // console.log(selectedUserId); // ye `"1"` hona chahiye
+                    $('.messages').append(html);
+                    $('.messages').scrollTop($('.messages')[0].scrollHeight);
+                    $("form #message").val('');
+
                 }
             });
 

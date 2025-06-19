@@ -2,11 +2,9 @@
 
 namespace App\Events;
 
+use App\Models\Message;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
-use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
@@ -15,16 +13,14 @@ class PusherBroadcast implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public string $message;
-    public $sender_id;
+    public $message;
 
     /**
      * Create a new event instance.
      */
-    public function __construct(string $message)
+    public function __construct(Message $message)
     {
         $this->message = $message;
-        $this->sender_id = auth()->id();
     }
 
     /**
@@ -34,7 +30,10 @@ class PusherBroadcast implements ShouldBroadcastNow
      */
     public function broadcastOn(): array
     {
-        return ['public'];
+        // Private channel better for messaging
+        return [
+            new Channel('public'), // ya new PrivateChannel('chat.' . $this->message->receiver_id)
+        ];
     }
 
     public function broadcastAs(): string
@@ -42,13 +41,14 @@ class PusherBroadcast implements ShouldBroadcastNow
         return 'chat';
     }
 
-    public function broadcastWith()
+    public function broadcastWith(): array
     {
         return [
-            'message' => $this->message,
-            'sender_id' => $this->sender_id,
-             'receiver_id' => $this->message->receiver_id,  
+            'id' => $this->message->id,
+            'sender_id' => $this->message->sender_id,
+            'receiver_id' => $this->message->receiver_id,
+            'message' => $this->message->message,
+            'created_at' => $this->message->created_at->diffForHumans(),
         ];
     }
-
 }
