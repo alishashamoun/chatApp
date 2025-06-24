@@ -155,7 +155,7 @@ class PusherController extends Controller
         }
         $chatReceiverId = $chat->sender_id == auth()->id()
             ? $chat->receiver_id
-            : $chat->sender_id;
+            : $chat->sender_id; 
         $chatReceiver = User::find($chatReceiverId);
 
         $users = User::where('id', '!=', auth()->id())->get();

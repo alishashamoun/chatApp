@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Chat extends Model
 {
-     protected $fillable = ['person_one_id', 'person_two_id'];
+    protected $fillable = ['person_one_id', 'person_two_id'];
 
     public function userOne()
     {
@@ -20,5 +20,10 @@ class Chat extends Model
     {
         return $this->hasMany(Message::class, 'chat_id', 'id');
     }
+    public function sender()
+    {
+        return $this->belongsTo(User::class, 'sender_id');
+    }
+
 }
 

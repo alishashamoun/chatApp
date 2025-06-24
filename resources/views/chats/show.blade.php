@@ -4,21 +4,21 @@
 
     <style>
         /* .messages {
-                                                    height: 400px;
-                                                    overflow-y: auto;
-                                                    padding: 15px;
-                                                    border: 1px solid #ddd;
-                                                    margin-bottom: 10px;
-                                                    background: #f9f9f9;
-                                                } */
+                                                        height: 400px;
+                                                        overflow-y: auto;
+                                                        padding: 15px;
+                                                        border: 1px solid #ddd;
+                                                        margin-bottom: 10px;
+                                                        background: #f9f9f9;
+                                                    } */
 
         /* .message {
-                                                margin-bottom: 10px;
-                                                padding: 10px;
-                                                background-color: #d1e7dd;
-                                                border-radius: 5px;
-                                                width: fit-content;
-                                                } */
+                                                    margin-bottom: 10px;
+                                                    padding: 10px;
+                                                    background-color: #d1e7dd;
+                                                    border-radius: 5px;
+                                                    width: fit-content;
+                                                    } */
     </style>
 
     <div class="container-fluid">
@@ -142,10 +142,9 @@
             event.preventDefault();
 
             let selectedUserId = document.getElementById('receiver_id').value;
-            console.log('Selected Receiver ID:', selectedUserId); // check value
+            console.log(document.getElementById('receiver_id').value);
 
-            // continue with ajax
-
+            // console.log('Selected Receiver ID:', selectedUserId);
 
             $.ajax({
                 url: "{{ route('broadcast') }}",
@@ -156,7 +155,7 @@
                 data: {
                     _token: $('meta[name="csrf-token"]').attr('content'),
                     sender_id: {{ auth()->id() }},
-                    receiver_id: selectedUserId,
+                    // receiver_id: ,
                     // chat_id: null,
                     message: $("form #message").val(),
                 }

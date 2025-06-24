@@ -34,20 +34,6 @@
         <div class="col-12 mt-5">
             <h3>Start a New Chat</h3>
             <ul class="list-group">
-                {{-- @forelse ($users as $chatUser)
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong>{{ $chatUser->name }}</strong>
-                        </div>
-                        <p>{{ $user->name }} (ID: {{ $user->id }})</p>
-
-                            <a href="{{ route('broadcastshow', ['id' => $chatUser->id]) }}" class="btn btn-sm btn-success">Start
-                                Chat</a>
-
-                    </li>
-                @empty
-                    <li class="list-group-item">No users found</li>
-                @endforelse --}}
                 @foreach ($users as $chatUser)
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <p>{{ $chatUser->name }}
