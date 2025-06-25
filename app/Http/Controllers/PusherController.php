@@ -99,6 +99,8 @@ class PusherController extends Controller
                 'person_two_id' => $user2,
             ]);
 
+
+
             // Save message in DB
             $message = Message::create([
                 'chat_id' => $chat->id,
@@ -156,7 +158,14 @@ class PusherController extends Controller
         $chatReceiverId = $chat->sender_id == auth()->id()
             ? $chat->receiver_id
             : $chat->sender_id;
+
         $chatReceiver = User::find($chatReceiverId);
+
+         $chatReceiver = $chat->userOne->id === auth()->id()
+        ? $chat->userTwo
+        : $chat->userOne;
+
+        $chatWithName = $chatReceiver->name;
 
         $users = User::where('id', '!=', auth()->id())->get();
         $messages = $chat->messages()->with('sender')->get();
@@ -166,10 +175,11 @@ class PusherController extends Controller
             'messages' => $messages,
             'users' => $users,
             'chatReceiver' => $chatReceiver,
+            'chatWithName' => $chatWithName,
         ]);
     }
 
-    
+
 
     public function getMessages()
     {

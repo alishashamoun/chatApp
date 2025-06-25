@@ -4,21 +4,21 @@
 
     <style>
         /* .messages {
-                                                            height: 400px;
-                                                            overflow-y: auto;
-                                                            padding: 15px;
-                                                            border: 1px solid #ddd;
-                                                            margin-bottom: 10px;
-                                                            background: #f9f9f9;
-                                                        } */
+        height: 400px;
+        overflow-y: auto;
+        padding: 15px;
+        border: 1px solid #ddd;
+        margin-bottom: 10px;
+        background: #f9f9f9;
+        } */
 
         /* .message {
-                                                        margin-bottom: 10px;
-                                                        padding: 10px;
-                                                        background-color: #d1e7dd;
-                                                        border-radius: 5px;
-                                                        width: fit-content;
-                                                        } */
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #d1e7dd;
+            border-radius: 5px;
+            width: fit-content;
+          } */
     </style>
 
     <div class="container-fluid">
