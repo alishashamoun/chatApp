@@ -4,21 +4,21 @@
 
     <style>
         /* .messages {
-                                                        height: 400px;
-                                                        overflow-y: auto;
-                                                        padding: 15px;
-                                                        border: 1px solid #ddd;
-                                                        margin-bottom: 10px;
-                                                        background: #f9f9f9;
-                                                    } */
+                                                            height: 400px;
+                                                            overflow-y: auto;
+                                                            padding: 15px;
+                                                            border: 1px solid #ddd;
+                                                            margin-bottom: 10px;
+                                                            background: #f9f9f9;
+                                                        } */
 
         /* .message {
-                                                    margin-bottom: 10px;
-                                                    padding: 10px;
-                                                    background-color: #d1e7dd;
-                                                    border-radius: 5px;
-                                                    width: fit-content;
-                                                    } */
+                                                        margin-bottom: 10px;
+                                                        padding: 10px;
+                                                        background-color: #d1e7dd;
+                                                        border-radius: 5px;
+                                                        width: fit-content;
+                                                        } */
     </style>
 
     <div class="container-fluid">
@@ -103,7 +103,7 @@
 
         //Receive messages
         channel.bind('chat', function(data) {
-            console.log('Received:', data);
+            // console.log('Received:', data);
             if (data.receiver_id == {{ auth()->id() }}) {
                 $.post("/receive", {
                         _token: $('meta[name="csrf-token"]').attr('content'),
@@ -142,7 +142,7 @@
             event.preventDefault();
 
             let selectedUserId = document.getElementById('receiver_id').value;
-            console.log(document.getElementById('receiver_id').value);
+            // console.log(document.getElementById('receiver_id').value);
 
             // console.log('Selected Receiver ID:', selectedUserId);
 
@@ -155,7 +155,7 @@
                 data: {
                     _token: $('meta[name="csrf-token"]').attr('content'),
                     sender_id: {{ auth()->id() }},
-                    // receiver_id: ,
+                    receiver_id: $('#receiver_id').val(),
                     // chat_id: null,
                     message: $("form #message").val(),
                 }
