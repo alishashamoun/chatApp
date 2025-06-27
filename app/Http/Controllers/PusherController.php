@@ -77,8 +77,10 @@ class PusherController extends Controller
 
     public function broadcast(Request $request)
     {
-        // Log::info('Receiver ID:', [$request->receiver_id]);
-        // Log::info('Full Request:', $request->all());
+        Log::info('Chat ID:', [$request->chat_id]);
+        Log::info('Receiver ID:', [$request->receiver_id]);
+        Log::info('Sender ID:', [auth()->id()]);
+
 
         try {
             $request->validate([
@@ -161,11 +163,12 @@ class PusherController extends Controller
 
         $chatReceiver = User::find($chatReceiverId);
 
-         $chatReceiver = $chat->userOne->id === auth()->id()
-        ? $chat->userTwo
-        : $chat->userOne;
+        $chatReceiver = $chat->userOne->id === auth()->id()
+            ? $chat->userTwo
+            : $chat->userOne;
 
         $chatWithName = $chatReceiver->name;
+
 
         $users = User::where('id', '!=', auth()->id())->get();
         $messages = $chat->messages()->with('sender')->get();

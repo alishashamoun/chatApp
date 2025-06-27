@@ -4,21 +4,21 @@
 
     <style>
         /* .messages {
-        height: 400px;
-        overflow-y: auto;
-        padding: 15px;
-        border: 1px solid #ddd;
-        margin-bottom: 10px;
-        background: #f9f9f9;
-        } */
+            height: 400px;
+            overflow-y: auto;
+            padding: 15px;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+            background: #f9f9f9;
+            } */
 
         /* .message {
-            margin-bottom: 10px;
-            padding: 10px;
-            background-color: #d1e7dd;
-            border-radius: 5px;
-            width: fit-content;
-          } */
+                margin-bottom: 10px;
+                padding: 10px;
+                background-color: #d1e7dd;
+                border-radius: 5px;
+                width: fit-content;
+              } */
     </style>
 
     <div class="container-fluid">
@@ -57,6 +57,7 @@
                     <div class="messages">
                         @include('receive', ['message' => "Hey! What's up!  👋"])
                         @foreach ($messages as $msg)
+                           @if ($msg->chat_id == $chat->id)
                             <div class="message mb-2">
                                 <div class=" text-{{ $msg->sender_id == auth()->id() ? 'end' : 'start' }}">
                                     <span class="badge bg-{{ $msg->sender_id == auth()->id() ? 'secondary' : 'primary' }}">
@@ -66,6 +67,7 @@
                                     <small>{{ $msg->created_at->diffForHumans() }}</small>
                                 </div>
                             </div>
+                            @endif
                         @endforeach
                     </div>
                     <!-- End Chat -->
@@ -74,7 +76,7 @@
                     <div class="bottom">
                         <form>
                             @csrf
-                            {{-- <input type="hidden" name="chat_id" value=""> --}}
+                           <input type="hidden" id="chat_id" name="chat_id" value="{{ $chat->id }}">
                             <input type="hidden" id="receiver_id" name="receiver_id"
                                 value="{{ $user->id ?? ($chatReceiver->id ?? '') }}">
 
@@ -156,9 +158,11 @@
                     _token: $('meta[name="csrf-token"]').attr('content'),
                     sender_id: {{ auth()->id() }},
                     receiver_id: $('#receiver_id').val(),
-                    // chat_id: null,
+                    chat_id: $('#chat_id').val(),
                     message: $("form #message").val(),
                 }
+
+
 
 
 
@@ -184,6 +188,11 @@
 
                 }
             });
+   console.log("Chat ID:", $('#chat_id').val());
+                console.log("Receiver ID:", $('#receiver_id').val());
+                console.log("Message:", $("form #message").val());
+                console.log('Current Chat ID:', $('#chat_id').val());
+
 
         });
 

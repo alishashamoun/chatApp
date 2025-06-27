@@ -44,7 +44,7 @@ class PusherBroadcast implements ShouldBroadcastNow
     public function broadcastWith(): array
     {
         return [
-            'id' => $this->message->id,
+            'chat_id' => $this->message->chat_id,
             'sender_id' => $this->message->sender_id,
             'receiver_id' => $this->message->receiver_id,
             'message' => $this->message->message,

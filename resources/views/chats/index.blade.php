@@ -37,9 +37,9 @@
                 @foreach ($users as $chatUser)
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <p>{{ $chatUser->name }}
-                            {{-- (ID: {{ $chatUser->id }}) --}}
+                            (ID: {{ $chatUser->id }})
                         </p>
-                        <a href="{{ route('broadcastshow', ['id' => $chatUser->id]) }}" class="btn btn-sm btn-success">Start
+                        <a href="{{ route('broadcastshow') }}" class="btn btn-sm btn-success">Start
                             Chat</a>
                     </li>
                 @endforeach
